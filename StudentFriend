@@ -1,0 +1,72 @@
+#include<iostream>
+#include<string>
+#include<functional>
+#include<vector>
+#include<random>
+
+int GetRandomNumber(int min, int max);
+
+class Student {
+private:
+	static std::vector<Student*>_students;
+	std::string _name;
+	Student* _friend = NULL;
+public:
+	Student(std::function<std::string()>f) {
+		_name = f();
+		_students.push_back(this);
+	}
+
+	void MakeFriend() {
+		int random = GetRandomNumber(0, _students.size() - 1);
+
+		if (_friend == NULL) {
+			if (_students.at(random)->_friend == NULL) {
+				_friend = _students.at(random);
+				_students.at(random)->_friend = this;
+			}
+			else return MakeFriend();
+		}
+	}
+
+	static void ShowStudent() {
+		for (auto it : _students) {
+			std::cout << "Name: " << it->_name << '\n';
+			std::cout << "Friend's name: " << it->_friend->_name << "\n\n";
+		}
+	}
+};
+
+int GetRandomNumber(int min, int max) {
+	std::random_device dev;
+	std::mt19937 rng(dev());
+	std::uniform_int_distribution<std::mt19937::result_type> dist6(min, max);
+	return dist6(rng);
+}
+
+std::vector<Student*>Student::_students;
+
+int main() {
+	std::vector<std::string>names = { "Monika", "Alex", "Alisa", "John"};
+	const int sizeOfVector = 4;
+	int random;
+	std::string name;
+
+	std::function<std::string()>f = [&]()-> std::string {
+		random = GetRandomNumber(0, names.size() - 1);
+		name = names.at(random);
+		names.erase(names.begin() + random);
+		return name;
+	};
+
+	Student *student[sizeOfVector];
+
+	for (int i = 0; i < sizeOfVector; i++)
+		student[i] = new Student(f);
+
+	for (int i = 0; i < sizeOfVector; i++)
+		student[i]->MakeFriend();
+
+	Student::ShowStudent();
+	return 0;
+}
